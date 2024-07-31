@@ -16,6 +16,7 @@ function delCard(evt) {
 
 // @todo: Функция создания карточки
 
+
 function createCard(img, title, functionDelCard) {
   const cardElement = cardTemplate.querySelector(".card").cloneNode(true);
   const buttonDelCard = cardElement.querySelector(".card__delete-button");
