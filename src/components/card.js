@@ -1,13 +1,8 @@
-import {
-  cardTemplate,
-  cardsContainer,
-  popupNewCard,
-} from "../scripts/index.js";
-import { popupToggle } from "../components/modal.js";
-
 // @todo: Функция создания карточки
 
-export function createCard(img, title, functionDelCard, functionLikeCard) {
+export function createCard(img, title, functionDelCard, functionLikeCard, handlerOpenPopupZoom) {
+  const cardTemplate = document.querySelector("#card-template").content;
+  const cardsContainer = document.querySelector(".places__list");
   const cardElement = cardTemplate.querySelector(".card").cloneNode(true);
   const buttonDelCard = cardElement.querySelector(".card__delete-button");
   const cardImg = cardElement.querySelector(".card__image");
@@ -19,6 +14,7 @@ export function createCard(img, title, functionDelCard, functionLikeCard) {
 
   buttonDelCard.addEventListener("click", functionDelCard);
   cardsContainer.addEventListener("click", functionLikeCard);
+  cardImg.addEventListener("click", handlerOpenPopupZoom);
 
   return cardElement;
 }
@@ -34,30 +30,4 @@ export function cardLike(evt) {
   if (evt.target.classList.contains("card__like-button")) {
     evt.target.classList.toggle("card__like-button_is-active");
   }
-}
-
-//функция создания новой карточки
-export function createNewCard(evt) {
-  evt.preventDefault();
-  //значение поля название
-  //значение поля ссылка на картинку
-  //значение кнопки сохранить - отрисовать новую карточку
-  const popupInputNewCardTitle = document.querySelector(
-    ".popup__input_type_card-name"
-  );
-  const popupInputNewCardImg = document.querySelector(".popup__input_type_url");
-
-  const cardImg = popupInputNewCardImg.value;
-  const cardTitle = popupInputNewCardTitle.value;
-
-  //вешаем слушатель при нажатии на кнопку сохранить, берем эти значения и передаем функции
-  //создания createCard(img, title, functionDelCard)
-
-  const card = createCard(cardImg, cardTitle, delCard, cardLike);
-  cardsContainer.prepend(card);
-
-  //обнуляем импуты
-  popupInputNewCardImg.value = "";
-  popupInputNewCardTitle.value = "";
-  popupToggle(popupNewCard);
 }
