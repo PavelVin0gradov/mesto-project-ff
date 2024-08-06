@@ -3,14 +3,13 @@ import { initialCards } from "./cards.js";
 import {
   createCard,
   delCard,
-  cardLike,
+  likeCard,
 } from "../components/card.js";
 
 import {
-  popupOpen,
-  popupClose,
+  openPopup,
+  closePopap,
   closePopupOverlay,
-  closePopupEsc,
 } from "../components/modal.js";
 
 const popupEditButtonOpen = document.querySelector(".profile__edit-button");
@@ -54,31 +53,30 @@ function addCard(cardsDataArray) {
     const cardImg = cardData.link;
     const cardTitle = cardData.name;
 
-    const card = createCard(cardImg, cardTitle, delCard, cardLike, handlerOpenPopupZoom);
+    const card = createCard(cardImg, cardTitle, delCard, likeCard, handleOpenPopupZoom);
     cardsContainer.append(card);
   });
 }
 
 //функция открытия попапа просмотра фото
-function popupZoomOpen(imageSrc, titleText) {
+function openPopupZoom(imageSrc, titleText) {
 
   popupZoomImg.src = imageSrc;
   popupZoomImg.alt = titleText;
   popupZoomTitle.textContent = titleText;
 
-  popupOpen(popupZoom);
-  document.addEventListener("keydown", closePopupEsc);
+  openPopup(popupZoom);
 }
 
 //Обработчик открытия попапа увеличения фото
-function handlerOpenPopupZoom(event) {
+function handleOpenPopupZoom(event) {
 
   const cardImg = event.target;
 
   const card = cardImg.closest(".card");
   const cardTitle = card.querySelector(".card__title").textContent;
 
-  popupZoomOpen(cardImg.src, cardTitle);
+  openPopupZoom(cardImg.src, cardTitle);
 };
 
 //функция создания новой карточки
@@ -93,14 +91,14 @@ function createNewCard(evt) {
   //вешаем слушатель при нажатии на кнопку сохранить, берем эти значения и передаем функции
   //создания createCard(img, title, functionDelCard)
 
-  const card = createCard(cardImg, cardTitle, delCard, cardLike, handlerOpenPopupZoom);
+  const card = createCard(cardImg, cardTitle, delCard, likeCard, handleOpenPopupZoom);
   cardsContainer.prepend(card);
 
   //обнуляем импуты
   popupInputNewCardImg.value = "";
   popupInputNewCardTitle.value = "";
 
-  popupClose(popupNewCard);
+  closePopap(popupNewCard);
 }
 
 // добавления слушателей и функции закрытия нажатием на крестик
@@ -110,7 +108,7 @@ function addListenersclosePopup() {
 
   popupBtnCloseList.forEach((popupBtn, index) => {
     popupBtn.addEventListener("click", () => {
-      popupClose(popupList[index]);
+      closePopap(popupList[index]);
     });
   });
 }
@@ -125,14 +123,13 @@ function addListenersclosePopupOverlay() {
 };
 
 //функция открытия попапа редактирования
-function popupEditOpen() {
+function openPopupEdit() {
   nameInput.value = profileInfoTitle.textContent;
   jobInput.value = profileInfoDescription.textContent;
 
   nameInput.textContent = profileInfoTitle.value;
   jobInput.textContent = profileInfoDescription.value;
-  popupOpen(popupEdit);
-  document.addEventListener("keydown", closePopupEsc);
+  openPopup(popupEdit);
 }
 
 // Обработчик изменения данных профиль и «отправки» формы, хотя пока
@@ -147,20 +144,19 @@ function handleEditFormSubmit(evt) {
   // Вставьте новые значения с помощью textContent
   profileInfoTitle.textContent = nameInputValue;
   profileInfoDescription.textContent = jobInputValue;
-  popupClose(popupEdit);
+  closePopap(popupEdit);
 }
 
 //функция открытия попапа создания новой карточки
-function popupNewCardOpen() {
-  popupOpen(popupNewCard);
-  document.addEventListener("keydown", closePopupEsc);
+function openPopupNewCard() {
+  openPopup(popupNewCard);
 }
 
 //слушатель открытия попапа редактирования
-popupEditButtonOpen.addEventListener("click", popupEditOpen);
+popupEditButtonOpen.addEventListener("click", openPopupEdit);
 
 //слушатель открытия попапа создания новой карточки
-popupNewCardButtonOpen.addEventListener("click", popupNewCardOpen);
+popupNewCardButtonOpen.addEventListener("click", openPopupNewCard);
 
 //слушатель создания новой карточки
 formCreateNC.addEventListener("submit", createNewCard);
@@ -176,5 +172,3 @@ addCard(initialCards);
 
 //вызов функции закрытия попапа нажатием на оверлей
 addListenersclosePopupOverlay();
-
-

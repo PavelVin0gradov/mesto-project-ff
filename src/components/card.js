@@ -26,7 +26,7 @@ export function delCard(evt) {
 }
 
 //лайк карточки
-export function cardLike(evt) {
+export function likeCard(evt) {
   if (evt.target.classList.contains("card__like-button")) {
     evt.target.classList.toggle("card__like-button_is-active");
   }
