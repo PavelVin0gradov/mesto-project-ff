@@ -8,7 +8,7 @@ import {
 
 import {
   openPopup,
-  closePopap,
+  closePopup,
   closePopupOverlay,
 } from "../components/modal.js";
 
@@ -98,7 +98,7 @@ function createNewCard(evt) {
   popupInputNewCardImg.value = "";
   popupInputNewCardTitle.value = "";
 
-  closePopap(popupNewCard);
+  closePopup(popupNewCard);
 }
 
 // добавления слушателей и функции закрытия нажатием на крестик
@@ -108,7 +108,7 @@ function addListenersclosePopup() {
 
   popupBtnCloseList.forEach((popupBtn, index) => {
     popupBtn.addEventListener("click", () => {
-      closePopap(popupList[index]);
+      closePopup(popupList[index]);
     });
   });
 }
@@ -144,7 +144,7 @@ function handleEditFormSubmit(evt) {
   // Вставьте новые значения с помощью textContent
   profileInfoTitle.textContent = nameInputValue;
   profileInfoDescription.textContent = jobInputValue;
-  closePopap(popupEdit);
+  closePopup(popupEdit);
 }
 
 //функция открытия попапа создания новой карточки
