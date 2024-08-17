@@ -1,0 +1,4 @@
+.popup__input_type_error {
+  outline: none;
+  border-bottom-color: red;
+}

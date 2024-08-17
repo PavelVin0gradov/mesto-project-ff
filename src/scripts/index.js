@@ -1,10 +1,12 @@
 import { initialCards } from "./cards.js";
 
+import { createCard, delCard, likeCard } from "../components/card.js";
+
 import {
-  createCard,
-  delCard,
-  likeCard,
-} from "../components/card.js";
+  validationConfig,
+  enableValidation,
+  clearValidation,
+} from "../components/validation.js";
 
 import {
   openPopup,
@@ -16,6 +18,7 @@ const popupEditButtonOpen = document.querySelector(".profile__edit-button");
 const popupNewCardButtonOpen = document.querySelector(".profile__add-button");
 
 const popupEdit = document.querySelector(".popup_type_edit");
+
 const popupNewCard = document.querySelector(".popup_type_new-card");
 const popupZoom = document.querySelector(".popup_type_image");
 
@@ -28,9 +31,7 @@ const popupInputNewCardTitle = document.querySelector(
 const popupInputNewCardImg = document.querySelector(".popup__input_type_url");
 
 const profileInfoTitle = document.querySelector(".profile__title");
-const profileInfoDescription = document.querySelector(
-  ".profile__description"
-);
+const profileInfoDescription = document.querySelector(".profile__description");
 
 // Находим форму в DOM
 const formElement = document.querySelector(".popup__form");
@@ -38,9 +39,8 @@ const formCreateNC = document.forms.newplace;
 
 // Находим поля формы в DOM
 const nameInput = formElement.querySelector(".popup__input_type_name");
-const jobInput = formElement.querySelector(
-  ".popup__input_type_description"
-);
+
+const jobInput = formElement.querySelector(".popup__input_type_description");
 
 // @todo: DOM узлы
 
@@ -53,14 +53,19 @@ function addCard(cardsDataArray) {
     const cardImg = cardData.link;
     const cardTitle = cardData.name;
 
-    const card = createCard(cardImg, cardTitle, delCard, likeCard, handleOpenPopupZoom);
+    const card = createCard(
+      cardImg,
+      cardTitle,
+      delCard,
+      likeCard,
+      handleOpenPopupZoom
+    );
     cardsContainer.append(card);
   });
 }
 
 //функция открытия попапа просмотра фото
 function openPopupZoom(imageSrc, titleText) {
-
   popupZoomImg.src = imageSrc;
   popupZoomImg.alt = titleText;
   popupZoomTitle.textContent = titleText;
@@ -70,14 +75,13 @@ function openPopupZoom(imageSrc, titleText) {
 
 //Обработчик открытия попапа увеличения фото
 function handleOpenPopupZoom(event) {
-
   const cardImg = event.target;
 
   const card = cardImg.closest(".card");
   const cardTitle = card.querySelector(".card__title").textContent;
 
   openPopupZoom(cardImg.src, cardTitle);
-};
+}
 
 //функция создания новой карточки
 function createNewCard(evt) {
@@ -91,12 +95,19 @@ function createNewCard(evt) {
   //вешаем слушатель при нажатии на кнопку сохранить, берем эти значения и передаем функции
   //создания createCard(img, title, functionDelCard)
 
-  const card = createCard(cardImg, cardTitle, delCard, likeCard, handleOpenPopupZoom);
+  const card = createCard(
+    cardImg,
+    cardTitle,
+    delCard,
+    likeCard,
+    handleOpenPopupZoom
+  );
   cardsContainer.prepend(card);
 
   //обнуляем импуты
   popupInputNewCardImg.value = "";
   popupInputNewCardTitle.value = "";
+  clearValidation(formCreateNC, validationConfig);
 
   closePopup(popupNewCard);
 }
@@ -118,9 +129,9 @@ function addListenersclosePopupOverlay() {
   const popupList = Array.from(document.querySelectorAll(".popup"));
 
   popupList.forEach((popupItem) => {
-    popupItem.addEventListener("mousedown", closePopupOverlay)
-  })
-};
+    popupItem.addEventListener("mousedown", closePopupOverlay);
+  });
+}
 
 //функция открытия попапа редактирования
 function openPopupEdit() {
@@ -129,6 +140,7 @@ function openPopupEdit() {
 
   nameInput.textContent = profileInfoTitle.value;
   jobInput.textContent = profileInfoDescription.value;
+  clearValidation(formElement, validationConfig);
   openPopup(popupEdit);
 }
 
@@ -149,6 +161,9 @@ function handleEditFormSubmit(evt) {
 
 //функция открытия попапа создания новой карточки
 function openPopupNewCard() {
+  popupInputNewCardImg.value = "";
+  popupInputNewCardTitle.value = "";
+  clearValidation(formCreateNC, validationConfig);
   openPopup(popupNewCard);
 }
 
@@ -172,3 +187,8 @@ addCard(initialCards);
 
 //вызов функции закрытия попапа нажатием на оверлей
 addListenersclosePopupOverlay();
+
+// Вызовем функцию
+// включение валидации вызовом enableValidation
+// все настройки передаются при вызове
+enableValidation(validationConfig);
