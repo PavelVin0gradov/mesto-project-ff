@@ -30,6 +30,7 @@ const popupInputNewCardTitle = document.querySelector(
 );
 const popupInputNewCardImg = document.querySelector(".popup__input_type_url");
 
+const profileAvatarImg = document.querySelector(".profile__image");
 const profileInfoTitle = document.querySelector(".profile__title");
 const profileInfoDescription = document.querySelector(".profile__description");
 
@@ -192,3 +193,60 @@ addListenersclosePopupOverlay();
 // включение валидации вызовом enableValidation
 // все настройки передаются при вызове
 enableValidation(validationConfig);
+
+//запрос на сервер для получения обьекта с первоначальными данными пользователя
+function getInitialUser() {
+  return fetch('https://mesto.nomoreparties.co./v1/wff-cohort-21/users/me', {
+    headers: {
+      authorization: 'adfb87df-3032-40f6-8edf-de055a5b3295'
+    }
+  })
+    .then(res => {
+      if (!res.ok) {
+        return Promise.reject(`Ошибка: ${res.status}`);
+      }
+      return res.json();
+    })
+    .then((result) => {
+      console.log(result);
+      updateProfileInfo(result.name, result.about, result.avatar);
+    })
+    .catch((err) => {
+      console.error(err);
+    });
+}
+
+function updateProfileInfo(name, about, avatar) {
+  profileInfoTitle.textContent = name;
+  profileInfoDescription.textContent = about;
+  profileAvatarImg.style.backgroundImage = `url('${avatar}')`;
+}
+
+// Вызов функции для получения данных с сервера и обновления профиля
+getInitialUser();
+
+function getCardsDescription() {
+  return fetch('https://mesto.nomoreparties.co./v1/wff-cohort-21/cards', {
+    headers: {
+      authorization: 'adfb87df-3032-40f6-8edf-de055a5b3295'
+    }
+  })
+    .then(res => {
+      if (!res.ok) {
+        return Promise.reject(`Ошибка: ${res.status}`);
+      }
+      return res.json();
+    })
+    .then((result) => {
+      console.log(result);
+      // updateProfileInfo(result.name, result.about, result.avatar);
+    })
+    .catch((err) => {
+      console.error(err);
+    });
+}
+
+getCardsDescription()
+
+// Токен: adfb87df-3032-40f6-8edf-de055a5b3295
+// Идентификатор группы: wff-cohort-21
