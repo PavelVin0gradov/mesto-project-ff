@@ -145,20 +145,20 @@ function openPopupEdit() {
   openPopup(popupEdit);
 }
 
-// Обработчик изменения данных профиль и «отправки» формы, хотя пока
-// она никуда отправляться не будет
-function handleEditFormSubmit(evt) {
-  evt.preventDefault(); // Эта строчка отменяет стандартную отправку формы.
+// // Обработчик изменения данных профиль и «отправки» формы, хотя пока
+// // она никуда отправляться не будет
+// function handleEditFormSubmit(evt) {
+//   evt.preventDefault(); // Эта строчка отменяет стандартную отправку формы.
 
-  // Получите значение полей jobInput и nameInput из свойства value
-  const nameInputValue = nameInput.value;
-  const jobInputValue = jobInput.value;
-  // Выберите элементы, куда должны быть вставлены значения полей
-  // Вставьте новые значения с помощью textContent
-  profileInfoTitle.textContent = nameInputValue;
-  profileInfoDescription.textContent = jobInputValue;
-  closePopup(popupEdit);
-}
+//   // Получите значение полей jobInput и nameInput из свойства value
+//   const nameInputValue = nameInput.value;
+//   const jobInputValue = jobInput.value;
+//   // Выберите элементы, куда должны быть вставлены значения полей
+//   // Вставьте новые значения с помощью textContent
+//   profileInfoTitle.textContent = nameInputValue;
+//   profileInfoDescription.textContent = jobInputValue;
+//   closePopup(popupEdit);
+// }
 
 //функция открытия попапа создания новой карточки
 function openPopupNewCard() {
@@ -184,8 +184,6 @@ formElement.addEventListener("submit", handleEditFormSubmit);
 //добавление слушателей закрытия попапа нажатием на крестик
 addListenersclosePopup();
 
-addCard(initialCards);
-
 //вызов функции закрытия попапа нажатием на оверлей
 addListenersclosePopupOverlay();
 
@@ -196,12 +194,12 @@ enableValidation(validationConfig);
 
 //запрос на сервер для получения обьекта с первоначальными данными пользователя
 function getInitialUser() {
-  return fetch('https://mesto.nomoreparties.co./v1/wff-cohort-21/users/me', {
+  return fetch("https://mesto.nomoreparties.co./v1/wff-cohort-21/users/me", {
     headers: {
-      authorization: 'adfb87df-3032-40f6-8edf-de055a5b3295'
-    }
+      authorization: "adfb87df-3032-40f6-8edf-de055a5b3295",
+    },
   })
-    .then(res => {
+    .then((res) => {
       if (!res.ok) {
         return Promise.reject(`Ошибка: ${res.status}`);
       }
@@ -226,12 +224,12 @@ function updateProfileInfo(name, about, avatar) {
 getInitialUser();
 
 function getCardsDescription() {
-  return fetch('https://mesto.nomoreparties.co./v1/wff-cohort-21/cards', {
+  return fetch("https://mesto.nomoreparties.co./v1/wff-cohort-21/cards", {
     headers: {
-      authorization: 'adfb87df-3032-40f6-8edf-de055a5b3295'
-    }
+      authorization: "adfb87df-3032-40f6-8edf-de055a5b3295",
+    },
   })
-    .then(res => {
+    .then((res) => {
       if (!res.ok) {
         return Promise.reject(`Ошибка: ${res.status}`);
       }
@@ -239,14 +237,85 @@ function getCardsDescription() {
     })
     .then((result) => {
       console.log(result);
-      // updateProfileInfo(result.name, result.about, result.avatar);
+      return result;
     })
     .catch((err) => {
       console.error(err);
     });
 }
 
-getCardsDescription()
+// getCardsDescription()
+
+getCardsDescription().then((cardsData) => {
+  addCard(cardsData);
+});
+
+// Функция для обновления профиля на сервере
+function renameUserData(name, about) {
+  return fetch("https://mesto.nomoreparties.co./v1/wff-cohort-21/users/me", {
+    method: "PATCH",
+    headers: {
+      authorization: "adfb87df-3032-40f6-8edf-de055a5b3295",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      name: name,
+      about: about,
+    }),
+  })
+    .then((response) => {
+      if (!response.ok) {
+        return Promise.reject(`Ошибка: ${response.status}`);
+      }
+      return response.json();
+    })
+    .then((data) => {
+      console.log("Профиль обновлен:", data);
+      return data;
+    })
+    .catch((err) => {
+      console.error("Ошибка при обновлении профиля:", err);
+    });
+}
+
+// Обработчик изменения данных профиль и «отправки» формы
+function handleEditFormSubmit(evt) {
+  evt.preventDefault(); // Эта строчка отменяет стандартную отправку формы.
+
+  // Получите значение полей jobInput и nameInput из свойства value
+  const nameInputValue = nameInput.value;
+  const jobInputValue = jobInput.value;
+
+  renameUserData(nameInputValue, jobInputValue)
+  .then(updatedData => {
+          // Обновление DOM с новыми данными профиля
+          profileInfoTitle.textContent = updatedData.name;
+          profileInfoDescription.textContent = updatedData.about;
+        });
+  closePopup(popupEdit);
+}
+
 
 // Токен: adfb87df-3032-40f6-8edf-de055a5b3295
 // Идентификатор группы: wff-cohort-21
+
+// Задать вопрос наставнику на Q&A
+
+// getCardsDescription().then(cardsData => {
+//   addCard(cardsData);
+// }
+// );
+
+// вот так работает, а так нет
+
+// function getCardsData() {
+//   const cardsDataArray = getCardsDescription;
+
+// addCard(cardsDataArray);
+
+// }
+
+// // Вызов функции для загрузки и отображения карточек
+// getCardsData();
+
+// почему!??!
