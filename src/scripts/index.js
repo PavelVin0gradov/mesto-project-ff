@@ -1,5 +1,3 @@
-import { initialCards } from "./cards.js";
-
 import { createCard, delCard, likeCard } from "../components/card.js";
 
 import {
@@ -16,9 +14,11 @@ import {
 
 const popupEditButtonOpen = document.querySelector(".profile__edit-button");
 const popupNewCardButtonOpen = document.querySelector(".profile__add-button");
+const popupDelCardButtonOpen = document.querySelector(".card__delete-button");
 
 const popupEdit = document.querySelector(".popup_type_edit");
-
+const popupAvatarUpdate = document.querySelector(".popup_type_update-avatar");
+const popupDelCardQuestion = document.querySelector(".popup_type_question");
 const popupNewCard = document.querySelector(".popup_type_new-card");
 const popupZoom = document.querySelector(".popup_type_image");
 
@@ -48,7 +48,8 @@ const cardsContainer = document.querySelector(".places__list");
 
 // @todo: Вывести карточки на страницу
 
-function addCard(cardsDataArray) {
+// Функция добавления карточки на страницу
+function addCard(cardsDataArray, currentUserId) {
   cardsDataArray.forEach((cardData) => {
     const cardImg = cardData.link;
     const cardTitle = cardData.name;
@@ -58,7 +59,13 @@ function addCard(cardsDataArray) {
       cardTitle,
       delCard,
       likeCard,
-      handleOpenPopupZoom
+      handleOpenPopupZoom,
+      cardData.owner._id,
+      currentUserId,
+      (cardElement, delCardFunction) => {
+        // Открываю попап с вопросом об удалении карточки
+        openPopup(popupDelCardQuestion);
+      }
     );
     cardsContainer.append(card);
   });
@@ -82,35 +89,6 @@ function handleOpenPopupZoom(event) {
 
   openPopupZoom(cardImg.src, cardTitle);
 }
-
-// //функция создания новой карточки
-// function createNewCard(evt) {
-//   evt.preventDefault();
-//   //значение поля название
-//   //значение поля ссылка на картинку
-//   //значение кнопки сохранить - отрисовать новую карточку
-//   const cardImg = popupInputNewCardImg.value;
-//   const cardTitle = popupInputNewCardTitle.value;
-
-//   //вешаем слушатель при нажатии на кнопку сохранить, берем эти значения и передаем функции
-//   //создания createCard(img, title, functionDelCard)
-
-//   const card = createCard(
-//     cardImg,
-//     cardTitle,
-//     delCard,
-//     likeCard,
-//     handleOpenPopupZoom
-//   );
-//   cardsContainer.prepend(card);
-
-//   //обнуляем импуты
-//   popupInputNewCardImg.value = "";
-//   popupInputNewCardTitle.value = "";
-//   clearValidation(formCreateNC, validationConfig);
-
-//   closePopup(popupNewCard);
-// }
 
 // добавления слушателей и функции закрытия нажатием на крестик
 function addListenersclosePopup() {
@@ -144,21 +122,6 @@ function openPopupEdit() {
   openPopup(popupEdit);
 }
 
-// // Обработчик изменения данных профиль и «отправки» формы, хотя пока
-// // она никуда отправляться не будет
-// function handleEditFormSubmit(evt) {
-//   evt.preventDefault(); // Эта строчка отменяет стандартную отправку формы.
-
-//   // Получите значение полей jobInput и nameInput из свойства value
-//   const nameInputValue = nameInput.value;
-//   const jobInputValue = jobInput.value;
-//   // Выберите элементы, куда должны быть вставлены значения полей
-//   // Вставьте новые значения с помощью textContent
-//   profileInfoTitle.textContent = nameInputValue;
-//   profileInfoDescription.textContent = jobInputValue;
-//   closePopup(popupEdit);
-// }
-
 //функция открытия попапа создания новой карточки
 function openPopupNewCard() {
   popupInputNewCardImg.value = "";
@@ -169,6 +132,9 @@ function openPopupNewCard() {
 
 //слушатель открытия попапа редактирования
 popupEditButtonOpen.addEventListener("click", openPopupEdit);
+
+//слушатель открытия попапа смены аватара
+profileAvatarImg.addEventListener("click", () => openPopup(popupAvatarUpdate));
 
 //слушатель открытия попапа создания новой карточки
 popupNewCardButtonOpen.addEventListener("click", openPopupNewCard);
@@ -206,21 +172,19 @@ function getInitialUser() {
     })
     .then((result) => {
       console.log(result);
-      updateProfileInfo(result.name, result.about, result.avatar);
+      return result;
     })
     .catch((err) => {
       console.error(err);
     });
 }
 
+// Функция для обновления информации профиля
 function updateProfileInfo(name, about, avatar) {
   profileInfoTitle.textContent = name;
   profileInfoDescription.textContent = about;
   profileAvatarImg.style.backgroundImage = `url('${avatar}')`;
 }
-
-// Вызов функции для получения первоначальных данных пользователя
-getInitialUser();
 
 //запрос на сервер для получения массива обьектов с данными карточек других пользователей
 function getCardsDescription() {
@@ -244,10 +208,17 @@ function getCardsDescription() {
     });
 }
 
-//вызов функции запроса на сервер для получения массива обьектов с данными карточек, и добавление карточек с обработанными данными
-getCardsDescription().then((cardsData) => {
-  addCard(cardsData);
-});
+Promise.all([getInitialUser(), getCardsDescription()])
+  .then(([dataUser, dataCards]) => {
+    const currentUserId = dataUser._id; //мой id
+
+    // Обновляем информацию о пользователе
+    updateProfileInfo(dataUser.name, dataUser.about, dataUser.avatar);
+    addCard(dataCards, currentUserId);
+  })
+  .catch((err) => {
+    console.log(err);
+  });
 
 // Функция для обновления профиля на сервере
 function renameUserData(name, about) {
@@ -285,12 +256,11 @@ function handleEditFormSubmit(evt) {
   const nameInputValue = nameInput.value;
   const jobInputValue = jobInput.value;
 
-  renameUserData(nameInputValue, jobInputValue)
-  .then(updatedData => {
-          // Обновление DOM с новыми данными профиля
-          profileInfoTitle.textContent = updatedData.name;
-          profileInfoDescription.textContent = updatedData.about;
-        });
+  renameUserData(nameInputValue, jobInputValue).then((updatedData) => {
+    // Обновление DOM с новыми данными профиля
+    profileInfoTitle.textContent = updatedData.name;
+    profileInfoDescription.textContent = updatedData.about;
+  });
   closePopup(popupEdit);
 }
 
@@ -302,48 +272,48 @@ function createNewCard(evt) {
   const cardTitle = popupInputNewCardTitle.value;
 
   // Отправляем POST-запрос на сервер для создания новой карточки
-  fetch('https://mesto.nomoreparties.co./v1/wff-cohort-21/cards', {
-    method: 'POST',
+  fetch("https://mesto.nomoreparties.co./v1/wff-cohort-21/cards", {
+    method: "POST",
     headers: {
-      authorization: 'adfb87df-3032-40f6-8edf-de055a5b3295',
-      'Content-Type': 'application/json'
+      authorization: "adfb87df-3032-40f6-8edf-de055a5b3295",
+      "Content-Type": "application/json",
     },
     body: JSON.stringify({
       name: cardTitle,
-      link: cardImg
+      link: cardImg,
+    }),
+  })
+    .then((response) => {
+      if (!response.ok) {
+        return Promise.reject(`Ошибка: ${response.status}`);
+      }
+      console.log(response);
+      return response.json();
     })
-  })
-  .then(response => {
-    if (!response.ok) {
-      return Promise.reject(`Ошибка: ${response.status}`);
-    }
-    console.log(response);
-    return response.json();
-  })
-  .then(newCardData => {
-    // Создаем карточку с использованием данных из ответа сервера
-    const card = createCard(
-      newCardData.link,
-      newCardData.name,
-      delCard,
-      likeCard,
-      handleOpenPopupZoom
-    );
+    .then((newCardData) => {
+      // Создаем карточку с использованием данных из ответа сервера
+      const card = createCard(
+        newCardData.link,
+        newCardData.name,
+        delCard,
+        likeCard,
+        handleOpenPopupZoom
+      );
 
-    // Добавляем карточку в контейнер
-    cardsContainer.prepend(card);
+      // Добавляем карточку в контейнер
+      cardsContainer.prepend(card);
 
-    // Обнуляем поля ввода
-    popupInputNewCardImg.value = "";
-    popupInputNewCardTitle.value = "";
-    clearValidation(formCreateNC, validationConfig);
+      // Обнуляем поля ввода
+      popupInputNewCardImg.value = "";
+      popupInputNewCardTitle.value = "";
+      clearValidation(formCreateNC, validationConfig);
 
-    // Закрываем попап после добавления карточки
-    closePopup(popupNewCard);
-  })
-  .catch(err => {
-    console.error('Ошибка при добавлении карточки на сервер:', err);
-  });
+      // Закрываем попап после добавления карточки
+      closePopup(popupNewCard);
+    })
+    .catch((err) => {
+      console.error("Ошибка при добавлении карточки на сервер:", err);
+    });
 }
 
 // Токен: adfb87df-3032-40f6-8edf-de055a5b3295
@@ -351,7 +321,7 @@ function createNewCard(evt) {
 
 // Задать вопрос наставнику на Q&A
 
-// getCardsDescription().then(cardsData => {
+//1 getCardsDescription().then(cardsData => {
 //   addCard(cardsData);
 // }
 // );
@@ -369,3 +339,5 @@ function createNewCard(evt) {
 // getCardsData();
 
 // почему!??!
+
+//2 Как изменить запятую на точку в ответе сервера? развемы можем менять данные ответа?
