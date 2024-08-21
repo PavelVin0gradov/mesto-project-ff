@@ -40,7 +40,6 @@ const formCreateNC = document.forms.newplace;
 
 // Находим поля формы в DOM
 const nameInput = formElement.querySelector(".popup__input_type_name");
-
 const jobInput = formElement.querySelector(".popup__input_type_description");
 
 // @todo: DOM узлы
@@ -84,34 +83,34 @@ function handleOpenPopupZoom(event) {
   openPopupZoom(cardImg.src, cardTitle);
 }
 
-//функция создания новой карточки
-function createNewCard(evt) {
-  evt.preventDefault();
-  //значение поля название
-  //значение поля ссылка на картинку
-  //значение кнопки сохранить - отрисовать новую карточку
-  const cardImg = popupInputNewCardImg.value;
-  const cardTitle = popupInputNewCardTitle.value;
+// //функция создания новой карточки
+// function createNewCard(evt) {
+//   evt.preventDefault();
+//   //значение поля название
+//   //значение поля ссылка на картинку
+//   //значение кнопки сохранить - отрисовать новую карточку
+//   const cardImg = popupInputNewCardImg.value;
+//   const cardTitle = popupInputNewCardTitle.value;
 
-  //вешаем слушатель при нажатии на кнопку сохранить, берем эти значения и передаем функции
-  //создания createCard(img, title, functionDelCard)
+//   //вешаем слушатель при нажатии на кнопку сохранить, берем эти значения и передаем функции
+//   //создания createCard(img, title, functionDelCard)
 
-  const card = createCard(
-    cardImg,
-    cardTitle,
-    delCard,
-    likeCard,
-    handleOpenPopupZoom
-  );
-  cardsContainer.prepend(card);
+//   const card = createCard(
+//     cardImg,
+//     cardTitle,
+//     delCard,
+//     likeCard,
+//     handleOpenPopupZoom
+//   );
+//   cardsContainer.prepend(card);
 
-  //обнуляем импуты
-  popupInputNewCardImg.value = "";
-  popupInputNewCardTitle.value = "";
-  clearValidation(formCreateNC, validationConfig);
+//   //обнуляем импуты
+//   popupInputNewCardImg.value = "";
+//   popupInputNewCardTitle.value = "";
+//   clearValidation(formCreateNC, validationConfig);
 
-  closePopup(popupNewCard);
-}
+//   closePopup(popupNewCard);
+// }
 
 // добавления слушателей и функции закрытия нажатием на крестик
 function addListenersclosePopup() {
@@ -220,9 +219,10 @@ function updateProfileInfo(name, about, avatar) {
   profileAvatarImg.style.backgroundImage = `url('${avatar}')`;
 }
 
-// Вызов функции для получения данных с сервера и обновления профиля
+// Вызов функции для получения первоначальных данных пользователя
 getInitialUser();
 
+//запрос на сервер для получения массива обьектов с данными карточек других пользователей
 function getCardsDescription() {
   return fetch("https://mesto.nomoreparties.co./v1/wff-cohort-21/cards", {
     headers: {
@@ -244,8 +244,7 @@ function getCardsDescription() {
     });
 }
 
-// getCardsDescription()
-
+//вызов функции запроса на сервер для получения массива обьектов с данными карточек, и добавление карточек с обработанными данными
 getCardsDescription().then((cardsData) => {
   addCard(cardsData);
 });
@@ -295,6 +294,57 @@ function handleEditFormSubmit(evt) {
   closePopup(popupEdit);
 }
 
+function createNewCard(evt) {
+  evt.preventDefault();
+
+  // Получаем значения полей
+  const cardImg = popupInputNewCardImg.value;
+  const cardTitle = popupInputNewCardTitle.value;
+
+  // Отправляем POST-запрос на сервер для создания новой карточки
+  fetch('https://mesto.nomoreparties.co./v1/wff-cohort-21/cards', {
+    method: 'POST',
+    headers: {
+      authorization: 'adfb87df-3032-40f6-8edf-de055a5b3295',
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      name: cardTitle,
+      link: cardImg
+    })
+  })
+  .then(response => {
+    if (!response.ok) {
+      return Promise.reject(`Ошибка: ${response.status}`);
+    }
+    console.log(response);
+    return response.json();
+  })
+  .then(newCardData => {
+    // Создаем карточку с использованием данных из ответа сервера
+    const card = createCard(
+      newCardData.link,
+      newCardData.name,
+      delCard,
+      likeCard,
+      handleOpenPopupZoom
+    );
+
+    // Добавляем карточку в контейнер
+    cardsContainer.prepend(card);
+
+    // Обнуляем поля ввода
+    popupInputNewCardImg.value = "";
+    popupInputNewCardTitle.value = "";
+    clearValidation(formCreateNC, validationConfig);
+
+    // Закрываем попап после добавления карточки
+    closePopup(popupNewCard);
+  })
+  .catch(err => {
+    console.error('Ошибка при добавлении карточки на сервер:', err);
+  });
+}
 
 // Токен: adfb87df-3032-40f6-8edf-de055a5b3295
 // Идентификатор группы: wff-cohort-21
