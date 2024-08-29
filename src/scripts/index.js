@@ -23,6 +23,10 @@ const popupDelCardQuestion = document.querySelector(".popup_type_question");
 const popupNewCard = document.querySelector(".popup_type_new-card");
 const popupZoom = document.querySelector(".popup_type_image");
 
+const updateAvatarForm = document.querySelector(
+  ".popup__form_type_update-avatar"
+);
+
 const popupZoomImg = document.querySelector(".popup__image");
 const popupZoomTitle = document.querySelector(".popup__caption");
 
@@ -43,6 +47,8 @@ const formCreateNC = document.forms.newplace;
 const nameInput = formElement.querySelector(".popup__input_type_name");
 const jobInput = formElement.querySelector(".popup__input_type_description");
 
+const avatarInput = document.querySelector(".popup__input_type_update-avatar");
+
 // @todo: DOM узлы
 
 const cardsContainer = document.querySelector(".places__list");
@@ -59,7 +65,7 @@ function addCard(cardsDataArray, currentUserId) {
       cardImg,
       cardTitle,
       handleOpenDeletePopup,
-      likeCard,
+      handleLikeCard,
       handleOpenPopupZoom,
       cardData,
       currentUserId
@@ -261,6 +267,7 @@ function handleEditFormSubmit(evt) {
   closePopup(popupEdit);
 }
 
+//функция создания новой карточки
 function createNewCard(evt) {
   evt.preventDefault();
 
@@ -293,7 +300,7 @@ function createNewCard(evt) {
         newCardData.link,
         newCardData.name,
         handleOpenDeletePopup,
-        likeCard,
+        handleLikeCard,
         handleOpenPopupZoom,
         newCardData
       );
@@ -336,11 +343,13 @@ function deleteCard(cardId) {
     });
 }
 
+//функция обработчик открытия попапа подтверждения удаления
 function handleOpenDeletePopup(cardElement, cardId) {
   currentCardElement = { element: cardElement, id: cardId };
   openPopup(popupDelCardQuestion); // Открываем попап подтверждения
 }
 
+//функция обработчик удаления карточки
 function handleDeleteCardSubmit(evt) {
   evt.preventDefault(); // Предотвращаем стандартную отправку формы
 
@@ -359,9 +368,147 @@ function handleDeleteCardSubmit(evt) {
 // Слушатель на подтверждение удаления карточки
 popupDelCardQuestion.addEventListener("submit", handleDeleteCardSubmit);
 
-//function delCard(evt) {
-//   evt.target.closest(".card").remove();
-// }
+//запрос на сервер для установки лайка
+function addLikeCard(cardId) {
+  return fetch(
+    `https://mesto.nomoreparties.co./v1/wff-cohort-21/cards/likes/${cardId}`,
+    {
+      method: "PUT",
+      headers: {
+        authorization: "adfb87df-3032-40f6-8edf-de055a5b3295",
+      },
+    }
+  )
+    .then((res) => {
+      if (!res.ok) {
+        return Promise.reject(`Ошибка: ${res.status}`);
+      }
+      return res.json();
+    })
+    .catch((err) => {
+      console.error(err);
+    });
+}
+
+//запрос на сервер для удаления лайка
+function delLikeCard(cardId) {
+  return fetch(
+    `https://mesto.nomoreparties.co./v1/wff-cohort-21/cards/likes/${cardId}`,
+    {
+      method: "DELETE",
+      headers: {
+        authorization: "adfb87df-3032-40f6-8edf-de055a5b3295",
+      },
+    }
+  )
+    .then((res) => {
+      if (!res.ok) {
+        return Promise.reject(`Ошибка: ${res.status}`);
+      }
+      return res.json();
+    })
+    .catch((err) => {
+      console.error(err);
+    });
+}
+
+//функция обработчик установки/удаления лайка
+function handleLikeCard(cardElement, cardId, isLiked) {
+  const likeButton = cardElement.querySelector(".card__like-button");
+  const likeCounter = cardElement.querySelector(".card__like-number");
+
+  if (isLiked) {
+    delLikeCard(cardId)
+      .then((updatedCard) => {
+        likeButton.classList.remove("card__like-button_is-active");
+        likeCounter.textContent = updatedCard.likes.length;
+      })
+      .catch((err) => {
+        console.error(`Ошибка при удалении лайка: ${err}`);
+      });
+  } else {
+    addLikeCard(cardId)
+      .then((updatedCard) => {
+        likeButton.classList.add("card__like-button_is-active");
+        likeCounter.textContent = updatedCard.likes.length;
+      })
+      .catch((err) => {
+        console.error(`Ошибка при добавлении лайка: ${err}`);
+      });
+  }
+}
+
+//запрос на сервер с данными нового аватара
+function changeAvatar(avatar) {
+  return fetch(
+    "https://mesto.nomoreparties.co./v1/wff-cohort-21/users/me/avatar",
+    {
+      method: "PATCH",
+      headers: {
+        authorization: "adfb87df-3032-40f6-8edf-de055a5b3295",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        avatar: avatar,
+      }),
+    }
+  )
+    .then((res) => {
+      if (!res.ok) {
+        return Promise.reject(`Ошибка: ${res.status}`);
+      }
+      return res.json();
+    })
+    .catch((err) => {
+      console.error(err);
+    });
+}
+
+//функция проверки действительности и URL изображения
+function checkImageUrl(url) {
+  return fetch(url, { method: 'HEAD'})
+    .then((response) => {
+      if (!response.ok) {
+        return Promise.reject(`Ошибка: ${response.status}`);
+      }
+
+      // Проверка на url
+      const contentType = response.headers.get('Content-Type');
+      if (contentType && contentType.startsWith('image/')) {
+        return true;
+      } else {
+        return Promise.reject('Ошибка: Это не url');
+      }
+    })
+    .catch((error) => {
+      console.error('Error:', error);
+      return false;
+    });
+}
+
+
+//функция обработчик смены аватара
+function handleAvatarChange(evt) {
+  evt.preventDefault(); // Эта строчка отменяет стандартную отправку формы.
+
+  const avatarInputValue = avatarInput.value;
+
+   // Проверяем URL перед обновлением аватара
+   checkImageUrl(avatarInputValue).then((isValid) => {
+    if (isValid) {
+      changeAvatar(avatarInputValue).then((updatedData) => {
+        profileAvatarImg.style.backgroundImage = `url('${updatedData.avatar}`;
+  
+        avatarInput.value = "";
+        closePopup(popupAvatarUpdate);
+      });
+    } else {
+      console.error('Указанный URL-адрес не является допустимым.');
+    }
+})
+}
+
+updateAvatarForm.addEventListener("submit", handleAvatarChange);
 
 // Токен: adfb87df-3032-40f6-8edf-de055a5b3295
 // Идентификатор группы: wff-cohort-21
