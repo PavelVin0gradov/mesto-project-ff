@@ -12,9 +12,10 @@ import {
   closePopupOverlay,
 } from "../components/modal.js";
 
+let currentCardElement = null; // Переменная для хранения текущей карточки
+
 const popupEditButtonOpen = document.querySelector(".profile__edit-button");
 const popupNewCardButtonOpen = document.querySelector(".profile__add-button");
-const popupDelCardButtonOpen = document.querySelector(".card__delete-button");
 
 const popupEdit = document.querySelector(".popup_type_edit");
 const popupAvatarUpdate = document.querySelector(".popup_type_update-avatar");
@@ -57,15 +58,11 @@ function addCard(cardsDataArray, currentUserId) {
     const card = createCard(
       cardImg,
       cardTitle,
-      delCard,
+      handleOpenDeletePopup,
       likeCard,
       handleOpenPopupZoom,
-      cardData.owner._id,
-      currentUserId,
-      (cardElement, delCardFunction) => {
-        // Открываю попап с вопросом об удалении карточки
-        openPopup(popupDelCardQuestion);
-      }
+      cardData,
+      currentUserId
     );
     cardsContainer.append(card);
   });
@@ -295,9 +292,10 @@ function createNewCard(evt) {
       const card = createCard(
         newCardData.link,
         newCardData.name,
-        delCard,
+        handleOpenDeletePopup,
         likeCard,
-        handleOpenPopupZoom
+        handleOpenPopupZoom,
+        newCardData
       );
 
       // Добавляем карточку в контейнер
@@ -316,28 +314,58 @@ function createNewCard(evt) {
     });
 }
 
+//запрос на сервер для удаления карточки
+function deleteCard(cardId) {
+  return fetch(
+    `https://mesto.nomoreparties.co./v1/wff-cohort-21/cards/${cardId}`,
+    {
+      method: "DELETE",
+      headers: {
+        authorization: "adfb87df-3032-40f6-8edf-de055a5b3295",
+      },
+    }
+  )
+    .then((res) => {
+      if (!res.ok) {
+        return Promise.reject(`Ошибка: ${res.status}`);
+      }
+      return res.json();
+    })
+    .catch((err) => {
+      console.error(err);
+    });
+}
+
+function handleOpenDeletePopup(cardElement, cardId) {
+  currentCardElement = { element: cardElement, id: cardId };
+  openPopup(popupDelCardQuestion); // Открываем попап подтверждения
+}
+
+function handleDeleteCardSubmit(evt) {
+  evt.preventDefault(); // Предотвращаем стандартную отправку формы
+
+  if (currentCardElement) {
+    deleteCard(currentCardElement.id)
+      .then(() => {
+        currentCardElement.element.remove(); // Удаляем карточку из DOM
+        closePopup(popupDelCardQuestion); // Закрываем попап после успешного удаления
+      })
+      .catch((err) => {
+        console.error(`Ошибка при удалении карточки: ${err}`);
+      });
+  }
+}
+
+// Слушатель на подтверждение удаления карточки
+popupDelCardQuestion.addEventListener("submit", handleDeleteCardSubmit);
+
+//function delCard(evt) {
+//   evt.target.closest(".card").remove();
+// }
+
 // Токен: adfb87df-3032-40f6-8edf-de055a5b3295
 // Идентификатор группы: wff-cohort-21
 
 // Задать вопрос наставнику на Q&A
-
-//1 getCardsDescription().then(cardsData => {
-//   addCard(cardsData);
-// }
-// );
-
-// вот так работает, а так нет
-
-// function getCardsData() {
-//   const cardsDataArray = getCardsDescription;
-
-// addCard(cardsDataArray);
-
-// }
-
-// // Вызов функции для загрузки и отображения карточек
-// getCardsData();
-
-// почему!??!
 
 //2 Как изменить запятую на точку в ответе сервера? развемы можем менять данные ответа?

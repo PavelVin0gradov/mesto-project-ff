@@ -1,6 +1,6 @@
 // @todo: Функция создания карточки
 
-export function createCard(img, title, functionDelCard, functionLikeCard, handlerOpenPopupZoom, cardOwnerId, currentUserId, handleOpenDeletePopup) {
+export function createCard(img, title, functionDelCard, functionLikeCard, handlerOpenPopupZoom, cardData, currentUserId) {
   const cardTemplate = document.querySelector("#card-template").content;
   const cardsContainer = document.querySelector(".places__list");
   const cardElement = cardTemplate.querySelector(".card").cloneNode(true);
@@ -13,10 +13,10 @@ export function createCard(img, title, functionDelCard, functionLikeCard, handle
   cardTitle.textContent = title;
 
   // проверка на владельца карточки
-  if (cardOwnerId !== currentUserId) {
+  if (cardData.owner._id !== currentUserId) {
     buttonDelCard.remove(); // Удаляем кнопку, если карточка создана не текущим пользователем
   } else {
-    buttonDelCard.addEventListener("click", () => handleOpenDeletePopup(cardElement, functionDelCard)); // Вешаем событие только на свои карточки
+    buttonDelCard.addEventListener("click", () => functionDelCard(cardElement, cardData._id)); // Вешаем событие только на свои карточки
   }
 
   cardsContainer.addEventListener("click", functionLikeCard);
