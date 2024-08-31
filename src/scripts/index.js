@@ -160,6 +160,20 @@ addListenersclosePopupOverlay();
 // все настройки передаются при вызове
 enableValidation(validationConfig);
 
+//спиннер
+function renderLoading(isLoading) {
+  const textBtnSave = document.querySelector('.popup__button_text');
+  const textBtnSaveLoading = document.querySelector('.popup__button_text-loading');
+
+  if (isLoading) {
+    textBtnSaveLoading.classList.add('popup__button_text_loading-visible');
+    textBtnSave.classList.add('popup__button_text-hidden');
+  } else {
+    textBtnSaveLoading.classList.remove('popup__button_text_loading-visible');
+    textBtnSave.classList.remove('popup__button_text-hidden');
+  }
+}
+
 //запрос на сервер для получения обьекта с первоначальными данными пользователя
 function getInitialUser() {
   return fetch("https://mesto.nomoreparties.co./v1/wff-cohort-21/users/me", {
@@ -225,6 +239,8 @@ Promise.all([getInitialUser(), getCardsDescription()])
 
 // Функция для обновления профиля на сервере
 function renameUserData(name, about) {
+  renderLoading(true);
+
   return fetch("https://mesto.nomoreparties.co./v1/wff-cohort-21/users/me", {
     method: "PATCH",
     headers: {
@@ -248,7 +264,10 @@ function renameUserData(name, about) {
     })
     .catch((err) => {
       console.error("Ошибка при обновлении профиля:", err);
-    });
+    })
+    .finally(() => {
+      renderLoading(false);
+    })
 }
 
 // Обработчик изменения данных профиль и «отправки» формы
@@ -274,6 +293,8 @@ function createNewCard(evt) {
   // Получаем значения полей
   const cardImg = popupInputNewCardImg.value;
   const cardTitle = popupInputNewCardTitle.value;
+
+  renderLoading(true);
 
   // Отправляем POST-запрос на сервер для создания новой карточки
   fetch("https://mesto.nomoreparties.co./v1/wff-cohort-21/cards", {
@@ -318,7 +339,10 @@ function createNewCard(evt) {
     })
     .catch((err) => {
       console.error("Ошибка при добавлении карточки на сервер:", err);
-    });
+    })
+    .finally(() => {
+      renderLoading(false);
+    })
 }
 
 //запрос на сервер для удаления карточки
@@ -440,6 +464,8 @@ function handleLikeCard(cardElement, cardId, isLiked) {
 
 //запрос на сервер с данными нового аватара
 function changeAvatar(avatar) {
+  renderLoading(true);
+
   return fetch(
     "https://mesto.nomoreparties.co./v1/wff-cohort-21/users/me/avatar",
     {
@@ -461,7 +487,10 @@ function changeAvatar(avatar) {
     })
     .catch((err) => {
       console.error(err);
-    });
+    })
+    .finally(() => {
+      renderLoading(false);
+    })
 }
 
 //функция проверки действительности и URL изображения
@@ -509,6 +538,8 @@ function handleAvatarChange(evt) {
 }
 
 updateAvatarForm.addEventListener("submit", handleAvatarChange);
+
+
 
 // Токен: adfb87df-3032-40f6-8edf-de055a5b3295
 // Идентификатор группы: wff-cohort-21
