@@ -1,6 +1,18 @@
 import { createCard, delCard, likeCard } from "../components/card.js";
 
 import {
+  config,
+  getInitialUser,
+  getCardsDescription,
+  renameUserData,
+  deleteCard,
+  addLikeCard,
+  delLikeCard,
+  changeAvatar,
+  checkImageUrl,
+} from "../components/api.js";
+
+import {
   validationConfig,
   enableValidation,
   clearValidation,
@@ -162,38 +174,18 @@ enableValidation(validationConfig);
 
 //спиннер
 function renderLoading(isLoading) {
-  const textBtnSave = document.querySelector('.popup__button_text');
-  const textBtnSaveLoading = document.querySelector('.popup__button_text-loading');
+  const textBtnSave = document.querySelector(".popup__button_text");
+  const textBtnSaveLoading = document.querySelector(
+    ".popup__button_text-loading"
+  );
 
   if (isLoading) {
-    textBtnSaveLoading.classList.add('popup__button_text_loading-visible');
-    textBtnSave.classList.add('popup__button_text-hidden');
+    textBtnSaveLoading.classList.add("popup__button_text_loading-visible");
+    textBtnSave.classList.add("popup__button_text-hidden");
   } else {
-    textBtnSaveLoading.classList.remove('popup__button_text_loading-visible');
-    textBtnSave.classList.remove('popup__button_text-hidden');
+    textBtnSaveLoading.classList.remove("popup__button_text_loading-visible");
+    textBtnSave.classList.remove("popup__button_text-hidden");
   }
-}
-
-//запрос на сервер для получения обьекта с первоначальными данными пользователя
-function getInitialUser() {
-  return fetch("https://mesto.nomoreparties.co./v1/wff-cohort-21/users/me", {
-    headers: {
-      authorization: "adfb87df-3032-40f6-8edf-de055a5b3295",
-    },
-  })
-    .then((res) => {
-      if (!res.ok) {
-        return Promise.reject(`Ошибка: ${res.status}`);
-      }
-      return res.json();
-    })
-    .then((result) => {
-      console.log(result);
-      return result;
-    })
-    .catch((err) => {
-      console.error(err);
-    });
 }
 
 // Функция для обновления информации профиля
@@ -201,28 +193,6 @@ function updateProfileInfo(name, about, avatar) {
   profileInfoTitle.textContent = name;
   profileInfoDescription.textContent = about;
   profileAvatarImg.style.backgroundImage = `url('${avatar}')`;
-}
-
-//запрос на сервер для получения массива обьектов с данными карточек других пользователей
-function getCardsDescription() {
-  return fetch("https://mesto.nomoreparties.co./v1/wff-cohort-21/cards", {
-    headers: {
-      authorization: "adfb87df-3032-40f6-8edf-de055a5b3295",
-    },
-  })
-    .then((res) => {
-      if (!res.ok) {
-        return Promise.reject(`Ошибка: ${res.status}`);
-      }
-      return res.json();
-    })
-    .then((result) => {
-      console.log(result);
-      return result;
-    })
-    .catch((err) => {
-      console.error(err);
-    });
 }
 
 Promise.all([getInitialUser(), getCardsDescription()])
@@ -236,39 +206,6 @@ Promise.all([getInitialUser(), getCardsDescription()])
   .catch((err) => {
     console.log(err);
   });
-
-// Функция для обновления профиля на сервере
-function renameUserData(name, about) {
-  renderLoading(true);
-
-  return fetch("https://mesto.nomoreparties.co./v1/wff-cohort-21/users/me", {
-    method: "PATCH",
-    headers: {
-      authorization: "adfb87df-3032-40f6-8edf-de055a5b3295",
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      name: name,
-      about: about,
-    }),
-  })
-    .then((response) => {
-      if (!response.ok) {
-        return Promise.reject(`Ошибка: ${response.status}`);
-      }
-      return response.json();
-    })
-    .then((data) => {
-      console.log("Профиль обновлен:", data);
-      return data;
-    })
-    .catch((err) => {
-      console.error("Ошибка при обновлении профиля:", err);
-    })
-    .finally(() => {
-      renderLoading(false);
-    })
-}
 
 // Обработчик изменения данных профиль и «отправки» формы
 function handleEditFormSubmit(evt) {
@@ -297,12 +234,9 @@ function createNewCard(evt) {
   renderLoading(true);
 
   // Отправляем POST-запрос на сервер для создания новой карточки
-  fetch("https://mesto.nomoreparties.co./v1/wff-cohort-21/cards", {
+  fetch(`${config.baseUrl}/cards`, {
     method: "POST",
-    headers: {
-      authorization: "adfb87df-3032-40f6-8edf-de055a5b3295",
-      "Content-Type": "application/json",
-    },
+    headers: config.headers,
     body: JSON.stringify({
       name: cardTitle,
       link: cardImg,
@@ -323,7 +257,8 @@ function createNewCard(evt) {
         handleOpenDeletePopup,
         handleLikeCard,
         handleOpenPopupZoom,
-        newCardData
+        newCardData,
+        newCardData.owner._id
       );
 
       // Добавляем карточку в контейнер
@@ -342,28 +277,6 @@ function createNewCard(evt) {
     })
     .finally(() => {
       renderLoading(false);
-    })
-}
-
-//запрос на сервер для удаления карточки
-function deleteCard(cardId) {
-  return fetch(
-    `https://mesto.nomoreparties.co./v1/wff-cohort-21/cards/${cardId}`,
-    {
-      method: "DELETE",
-      headers: {
-        authorization: "adfb87df-3032-40f6-8edf-de055a5b3295",
-      },
-    }
-  )
-    .then((res) => {
-      if (!res.ok) {
-        return Promise.reject(`Ошибка: ${res.status}`);
-      }
-      return res.json();
-    })
-    .catch((err) => {
-      console.error(err);
     });
 }
 
@@ -392,50 +305,6 @@ function handleDeleteCardSubmit(evt) {
 // Слушатель на подтверждение удаления карточки
 popupDelCardQuestion.addEventListener("submit", handleDeleteCardSubmit);
 
-//запрос на сервер для установки лайка
-function addLikeCard(cardId) {
-  return fetch(
-    `https://mesto.nomoreparties.co./v1/wff-cohort-21/cards/likes/${cardId}`,
-    {
-      method: "PUT",
-      headers: {
-        authorization: "adfb87df-3032-40f6-8edf-de055a5b3295",
-      },
-    }
-  )
-    .then((res) => {
-      if (!res.ok) {
-        return Promise.reject(`Ошибка: ${res.status}`);
-      }
-      return res.json();
-    })
-    .catch((err) => {
-      console.error(err);
-    });
-}
-
-//запрос на сервер для удаления лайка
-function delLikeCard(cardId) {
-  return fetch(
-    `https://mesto.nomoreparties.co./v1/wff-cohort-21/cards/likes/${cardId}`,
-    {
-      method: "DELETE",
-      headers: {
-        authorization: "adfb87df-3032-40f6-8edf-de055a5b3295",
-      },
-    }
-  )
-    .then((res) => {
-      if (!res.ok) {
-        return Promise.reject(`Ошибка: ${res.status}`);
-      }
-      return res.json();
-    })
-    .catch((err) => {
-      console.error(err);
-    });
-}
-
 //функция обработчик установки/удаления лайка
 function handleLikeCard(cardElement, cardId, isLiked) {
   const likeButton = cardElement.querySelector(".card__like-button");
@@ -462,88 +331,25 @@ function handleLikeCard(cardElement, cardId, isLiked) {
   }
 }
 
-//запрос на сервер с данными нового аватара
-function changeAvatar(avatar) {
-  renderLoading(true);
-
-  return fetch(
-    "https://mesto.nomoreparties.co./v1/wff-cohort-21/users/me/avatar",
-    {
-      method: "PATCH",
-      headers: {
-        authorization: "adfb87df-3032-40f6-8edf-de055a5b3295",
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        avatar: avatar,
-      }),
-    }
-  )
-    .then((res) => {
-      if (!res.ok) {
-        return Promise.reject(`Ошибка: ${res.status}`);
-      }
-      return res.json();
-    })
-    .catch((err) => {
-      console.error(err);
-    })
-    .finally(() => {
-      renderLoading(false);
-    })
-}
-
-//функция проверки действительности и URL изображения
-function checkImageUrl(url) {
-  return fetch(url, { method: 'HEAD'})
-    .then((response) => {
-      if (!response.ok) {
-        return Promise.reject(`Ошибка: ${response.status}`);
-      }
-
-      // Проверка на url
-      const contentType = response.headers.get('Content-Type');
-      if (contentType && contentType.startsWith('image/')) {
-        return true;
-      } else {
-        return Promise.reject('Ошибка: Это не url');
-      }
-    })
-    .catch((error) => {
-      console.error('Error:', error);
-      return false;
-    });
-}
-
-
 //функция обработчик смены аватара
 function handleAvatarChange(evt) {
   evt.preventDefault(); // Эта строчка отменяет стандартную отправку формы.
 
   const avatarInputValue = avatarInput.value;
 
-   // Проверяем URL перед обновлением аватара
-   checkImageUrl(avatarInputValue).then((isValid) => {
+  // Проверяем URL перед обновлением аватара
+  checkImageUrl(avatarInputValue).then((isValid) => {
     if (isValid) {
       changeAvatar(avatarInputValue).then((updatedData) => {
         profileAvatarImg.style.backgroundImage = `url('${updatedData.avatar}`;
-  
+
         avatarInput.value = "";
         closePopup(popupAvatarUpdate);
       });
     } else {
-      console.error('Указанный URL-адрес не является допустимым.');
+      console.error("Указанный URL-адрес не является допустимым.");
     }
-})
+  });
 }
 
 updateAvatarForm.addEventListener("submit", handleAvatarChange);
-
-
-
-// Токен: adfb87df-3032-40f6-8edf-de055a5b3295
-// Идентификатор группы: wff-cohort-21
-
-// Задать вопрос наставнику на Q&A
-
-//2 Как изменить запятую на точку в ответе сервера? развемы можем менять данные ответа?

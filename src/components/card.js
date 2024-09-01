@@ -1,6 +1,14 @@
 // @todo: Функция создания карточки
 
-export function createCard(img, title, functionDelCard, handleLikeCard, handlerOpenPopupZoom, cardData, currentUserId) {
+export function createCard(
+  img,
+  title,
+  functionDelCard,
+  handleLikeCard,
+  handlerOpenPopupZoom,
+  cardData,
+  currentUserId
+) {
   const cardTemplate = document.querySelector("#card-template").content;
   const cardElement = cardTemplate.querySelector(".card").cloneNode(true);
   const buttonDelCard = cardElement.querySelector(".card__delete-button");
@@ -16,8 +24,8 @@ export function createCard(img, title, functionDelCard, handleLikeCard, handlerO
   //подгружаем кол-во лайков с сервера
   likeCounter.textContent = cardData.likes.length;
 
-  //проверяем есть ли наши, если есть то красим сердце в черный
-  if (cardData.likes.some(like => like._id === currentUserId)) {
+  //проверяем есть ли наши лайки, если есть то красим сердце в черный
+  if (cardData.likes.some((like) => like._id === currentUserId)) {
     buttonLikeCard.classList.add("card__like-button_is-active");
   }
 
@@ -26,11 +34,15 @@ export function createCard(img, title, functionDelCard, handleLikeCard, handlerO
     buttonDelCard.remove(); // Удаляем кнопку, если карточка создана не нами
   } else {
     // Вешаем событие только на свои карточки
-    buttonDelCard.addEventListener("click", () => functionDelCard(cardElement, cardData._id));
+    buttonDelCard.addEventListener("click", () =>
+      functionDelCard(cardElement, cardData._id)
+    );
   }
 
-  buttonLikeCard.addEventListener('click', () => {
-    const isLiked = buttonLikeCard.classList.contains('card__like-button_is-active');
+  buttonLikeCard.addEventListener("click", () => {
+    const isLiked = buttonLikeCard.classList.contains(
+      "card__like-button_is-active"
+    );
     handleLikeCard(cardElement, cardData._id, isLiked);
   });
   cardImg.addEventListener("click", handlerOpenPopupZoom);
