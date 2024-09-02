@@ -69,13 +69,13 @@
               placeholder="Занятие"
               minlength="2"
               maxlength="200"
-              pattern="[a-zA-Zа-яА-ЯёЁ\,- ]+"
+              pattern="[a-zA-Zа-яА-ЯёЁ,\- ]+"
               data-error-message="Разрешены только латинские, кириллические буквы, знаки дефиса и пробелы"
               required
             />
             <span class="description-input-error popup__input-error"></span>
             <button type="submit" class="button popup__button">
-              <span class="popup__button_text">Сохранить</span><span class="popup__button_text-loading">Сохранение...</span>
+              Сохранить
             </button>
           </form>
         </div>
@@ -98,8 +98,11 @@
               required
             />
             <span class="img-input-error popup__input-error"></span>
-            <button type="submit" class="button popup__button popup__button_update-avatar">
-              <span class="popup__button_text">Сохранить</span><span class="popup__button_text-loading">Сохранение...</span>
+            <button
+              type="submit"
+              class="button popup__button popup__button_update-avatar"
+            >
+              Сохранить
             </button>
           </form>
         </div>
@@ -112,7 +115,10 @@
             class="popup__form popup__form_type_question"
             name="update-avatar"
           >
-            <button type="submit" class="button popup__button popup__button_question">
+            <button
+              type="submit"
+              class="button popup__button popup__button_question"
+            >
               Да
             </button>
           </form>
@@ -153,7 +159,7 @@
               type="submit"
               class="button popup__button popup__button_create-NC"
             >
-            <span class="popup__button_text">Сохранить</span><span class="popup__button_text-loading">Сохранение...</span>
+              Сохранить
             </button>
           </form>
         </div>

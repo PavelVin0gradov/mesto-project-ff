@@ -1,14 +1,14 @@
 // @todo: Функция создания карточки
 
-export function createCard(
+export function createCard({
   img,
   title,
   functionDelCard,
   handleLikeCard,
   handlerOpenPopupZoom,
   cardData,
-  currentUserId
-) {
+  currentUserId,
+}) {
   const cardTemplate = document.querySelector("#card-template").content;
   const cardElement = cardTemplate.querySelector(".card").cloneNode(true);
   const buttonDelCard = cardElement.querySelector(".card__delete-button");

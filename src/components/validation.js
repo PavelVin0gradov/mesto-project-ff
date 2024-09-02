@@ -60,6 +60,18 @@ const isValid = (formElement, inputElement) => {
   }
 };
 
+// Функция для деактивации кнопки
+export const disableButton = (buttonElement) => {
+  buttonElement.disabled = true;
+  buttonElement.classList.add(validationConfig.inactiveButtonClass); // добавляем класс для стилизации неактивной кнопки
+};
+
+// Функция для активации кнопки
+const enableButton = (buttonElement) => {
+  buttonElement.disabled = false;
+  buttonElement.classList.remove(validationConfig.inactiveButtonClass); // Убираем класс неактивной кнопки
+};
+
 // Функция принимает массив полей ввода
 // и элемент кнопки, состояние которой нужно менять
 
@@ -67,12 +79,10 @@ const toggleButtonState = (inputList, buttonElement) => {
   // Если есть хотя бы один невалидный инпут
   if (hasInvalidInput(inputList)) {
     // сделай кнопку неактивной
-    buttonElement.disabled = true;
-    buttonElement.classList.add(validationConfig.inactiveButtonClass);
+    disableButton(buttonElement);
   } else {
     // иначе сделай кнопку активной
-    buttonElement.disabled = false;
-    buttonElement.classList.remove(validationConfig.inactiveButtonClass);
+    enableButton(buttonElement);
   }
 };
 
@@ -87,6 +97,11 @@ const setEventListeners = (formElement, validationConfig) => {
   );
   // Вызовем toggleButtonState и передадим ей массив полей и кнопку
   toggleButtonState(inputList, buttonElement);
+
+  // Добавляем обработчик события 'reset', который деактивирует кнопку
+  formElement.addEventListener("reset", () => {
+    disableButton(buttonElement);
+  });
   // Обойдём все элементы полученной коллекции
   inputList.forEach((inputElement) => {
     // каждому полю добавим обработчик события input
@@ -127,16 +142,12 @@ export function clearValidation(formElement, validationConfig) {
     formElement.querySelectorAll(validationConfig.inputSelector)
   );
   inputElements.forEach((inputElement) => {
-    const errorElement = formElement.querySelector(`.${inputElement.id}-error`);
-    inputElement.classList.remove(validationConfig.inputErrorClass);
-    errorElement.textContent = "";
-    errorElement.classList.remove(validationConfig.errorClass);
+    hideInputError(formElement, inputElement);
   });
 
   // Деактивируем кнопку отправки формы
   const submitButton = formElement.querySelector(
     validationConfig.submitButtonSelector
   );
-  submitButton.classList.add(validationConfig.inactiveButtonClass);
-  submitButton.disabled = true;
+  toggleButtonState(inputElements, submitButton);
 }

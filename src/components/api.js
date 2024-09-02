@@ -1,3 +1,5 @@
+import { checkResponse } from "./utils.js";
+
 export const config = {
   baseUrl: "https://mesto.nomoreparties.co/v1/wff-cohort-21",
   headers: {
@@ -6,166 +8,93 @@ export const config = {
   },
 };
 
-//спиннер
-function renderLoading(isLoading) {
-  const textBtnSave = document.querySelector(".popup__button_text");
-  const textBtnSaveLoading = document.querySelector(
-    ".popup__button_text-loading"
-  );
+// Универсальная функция запроса с проверкой ответа
+export const request = (endpoint, options = {}) => {
+  // базовый URL и конечный
+  const url = `${config.baseUrl}${endpoint}`;
 
-  if (isLoading) {
-    textBtnSaveLoading.classList.add("popup__button_text_loading-visible");
-    textBtnSave.classList.add("popup__button_text-hidden");
-  } else {
-    textBtnSaveLoading.classList.remove("popup__button_text_loading-visible");
-    textBtnSave.classList.remove("popup__button_text-hidden");
-  }
-}
+  const headers = {
+    ...config.headers,
+    ...options.headers,
+  };
+
+  // Выполняем запрос и проверяем ответ
+  return fetch(url, {
+    ...options,
+    headers,
+  }).then(checkResponse);
+};
 
 //запрос на сервер для получения обьекта с первоначальными данными пользователя
 export const getInitialUser = () => {
-  return fetch(`${config.baseUrl}/users/me`, {
-    headers: config.headers,
-  })
-    .then((res) => {
-      if (!res.ok) {
-        return Promise.reject(`Ошибка: ${res.status}`);
-      }
-      return res.json();
-    })
-    .then((result) => {
-      console.log(result);
-      return result;
-    })
-    .catch((err) => {
-      console.error(err);
-    });
+  return request("/users/me").then((result) => {
+    console.log(result);
+    return result;
+  });
 };
 
 //запрос на сервер для получения массива обьектов с данными карточек других пользователей
 export const getCardsDescription = () => {
-  return fetch(`${config.baseUrl}/cards`, {
-    headers: config.headers,
-  })
-    .then((res) => {
-      if (!res.ok) {
-        return Promise.reject(`Ошибка: ${res.status}`);
-      }
-      return res.json();
-    })
-    .then((result) => {
-      console.log(result);
-      return result;
-    })
-    .catch((err) => {
-      console.error(err);
-    });
+  return request("/cards").then((result) => {
+    console.log(result);
+    return result;
+  });
 };
 
 // Функция для обновления профиля на сервере
 export const renameUserData = (name, about) => {
-  renderLoading(true);
-
-  return fetch(`${config.baseUrl}/users/me`, {
+  return request("/users/me", {
     method: "PATCH",
-    headers: config.headers,
     body: JSON.stringify({
       name: name,
       about: about,
     }),
-  })
-    .then((response) => {
-      if (!response.ok) {
-        return Promise.reject(`Ошибка: ${response.status}`);
-      }
-      return response.json();
-    })
-    .then((data) => {
-      console.log("Профиль обновлен:", data);
-      return data;
-    })
-    .catch((err) => {
-      console.error("Ошибка при обновлении профиля:", err);
-    })
-    .finally(() => {
-      renderLoading(false);
-    });
+  }).then((data) => {
+    console.log("Профиль обновлен:", data);
+    return data;
+  });
 };
 
 //запрос на сервер для удаления карточки
 export const deleteCard = (cardId) => {
-  return fetch(`${config.baseUrl}/cards/${cardId}`, {
+  return request(`/cards/${cardId}`, {
     method: "DELETE",
-    headers: config.headers,
-  })
-    .then((res) => {
-      if (!res.ok) {
-        return Promise.reject(`Ошибка: ${res.status}`);
-      }
-      return res.json();
-    })
-    .catch((err) => {
-      console.error(err);
-    });
+  });
 };
 
 //запрос на сервер для установки лайка
 export const addLikeCard = (cardId) => {
-  return fetch(`${config.baseUrl}/cards/likes/${cardId}`, {
+  return request(`/cards/likes/${cardId}`, {
     method: "PUT",
-    headers: config.headers,
-  })
-    .then((res) => {
-      if (!res.ok) {
-        return Promise.reject(`Ошибка: ${res.status}`);
-      }
-      return res.json();
-    })
-    .catch((err) => {
-      console.error(err);
-    });
+  });
 };
 
 //запрос на сервер для удаления лайка
 export const delLikeCard = (cardId) => {
-  return fetch(`${config.baseUrl}/cards/likes/${cardId}`, {
+  return request(`/cards/likes/${cardId}`, {
     method: "DELETE",
-    headers: config.headers,
-  })
-    .then((res) => {
-      if (!res.ok) {
-        return Promise.reject(`Ошибка: ${res.status}`);
-      }
-      return res.json();
-    })
-    .catch((err) => {
-      console.error(err);
-    });
+  });
 };
 
 //запрос на сервер с данными нового аватара
 export const changeAvatar = (avatar) => {
-  renderLoading(true);
-
-  return fetch(`${config.baseUrl}/users/me/avatar`, {
+  return request("/users/me/avatar", {
     method: "PATCH",
-    headers: config.headers,
     body: JSON.stringify({
       avatar: avatar,
     }),
-  })
-    .then((res) => {
-      if (!res.ok) {
-        return Promise.reject(`Ошибка: ${res.status}`);
-      }
-      return res.json();
-    })
-    .catch((err) => {
-      console.error(err);
-    })
-    .finally(() => {
-      renderLoading(false);
-    });
+  });
+};
+
+// //запрос на сервер для создания новой карточки
+export const createNewCard = (cardTitle, cardImg) => {
+  return request("/cards", {
+    method: "POST",
+    body: JSON.stringify({
+      name: cardTitle,
+      link: cardImg,
+    }),
+  });
 };
 
 //функция проверки действительности и URL изображения
@@ -175,7 +104,6 @@ export const checkImageUrl = (url) => {
       if (!response.ok) {
         return Promise.reject(`Ошибка: ${response.status}`);
       }
-
       // Проверка на url
       const contentType = response.headers.get("Content-Type");
       if (contentType && contentType.startsWith("image/")) {
