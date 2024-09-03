@@ -1,3 +1,5 @@
+import { closePopup } from "./modal.js";
+
 export function checkResponse(res) {
   if (res.ok) {
     return res.json();
@@ -24,8 +26,8 @@ export function renderLoading(
 export function handleSubmit(request, evt, loadingText = "Сохранение...") {
   // всегда нужно предотвращать перезагрузку формы при сабмите
   evt.preventDefault();
-
-  const popup = document.querySelector(".popup_is-opened");
+  //находим ближайший к форме попап
+  const popup = evt.target.closest(".popup_is-opened");
   // универсально получаем кнопку сабмита из `evt`
   const submitButton = evt.submitter;
   // записываем начальный текст кнопки до вызова запроса
@@ -38,7 +40,8 @@ export function handleSubmit(request, evt, loadingText = "Сохранение..
         // любую форму нужно очищать после успешного ответа от сервера
         // а также `reset` может запустить деактивацию кнопки сабмита (смотрите в `validate.js`)
         evt.target.reset();
-        popup.classList.remove("popup_is-opened"); //закрываем попап после успешного ответа
+        closePopup(popup) //закрываем попап после успешного ответа (я думал нельзя в utils что либо импортировать,
+        // чтобы не было жесткой связки)
       })
       .catch((err) => {
         // в каждом запросе нужно ловить ошибку

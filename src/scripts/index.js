@@ -3,7 +3,6 @@ import { createCard } from "../components/card.js";
 import { handleSubmit } from "../components/utils.js";
 
 import {
-  config,
   getInitialUser,
   getCardsDescription,
   renameUserData,
@@ -56,12 +55,12 @@ const profileInfoTitle = document.querySelector(".profile__title");
 const profileInfoDescription = document.querySelector(".profile__description");
 
 // Находим форму в DOM(любую, не обязательно profileForm (форма профиля))
-const formElement = document.querySelector(".popup__form");
+const profileForm = document.forms.profileEdit;
 const formCreateNC = document.forms.newplace;
 
 // Находим поля формы в DOM
-const nameInput = formElement.querySelector(".popup__input_type_name");
-const jobInput = formElement.querySelector(".popup__input_type_description");
+const nameInput = profileForm.querySelector(".popup__input_type_name");
+const jobInput = profileForm.querySelector(".popup__input_type_description");
 
 const avatarInput = document.querySelector(".popup__input_type_update-avatar");
 
@@ -136,7 +135,7 @@ function openPopupEdit() {
   nameInput.value = profileInfoTitle.textContent;
   jobInput.value = profileInfoDescription.textContent;
 
-  clearValidation(formElement, validationConfig);
+  clearValidation(profileForm, validationConfig);
   openPopup(popupEdit);
 }
 
@@ -191,19 +190,10 @@ function handleCreateNewCardSubmit(evt) {
     const cardImg = popupInputNewCardImg.value;
     const cardTitle = popupInputNewCardTitle.value;
 
+    // Отправляем запрос на создание новой карточки
     return createNewCard(cardTitle, cardImg).then((newCardData) => {
-      // Создаем карточку с использованием данных из ответа сервера
-      const card = createCard({
-        img: newCardData.link,
-        title: newCardData.name,
-        functionDelCard: handleOpenDeletePopup,
-        handleLikeCard: handleLikeCard,
-        handlerOpenPopupZoom: handleOpenPopupZoom,
-        cardData: newCardData,
-        currentUserId: newCardData.owner._id,
-      });
-      // Добавляем карточку в контейнер
-      cardsContainer.prepend(card);
+      // Передаем данные новой карточки в функцию addCards
+      addCards([newCardData], newCardData.owner._id, 'prepend');
     });
   }
   // Вызываем универсальную функцию
@@ -292,7 +282,7 @@ formCreateNC.addEventListener("submit", handleCreateNewCardSubmit);
 
 // Прикрепляем обработчик к форме:
 // он будет следить за событием “submit” - «отправка»
-formElement.addEventListener("submit", handleEditFormSubmit);
+profileForm.addEventListener("submit", handleEditFormSubmit);
 
 //добавление слушателей закрытия попапа нажатием на крестик
 addListenersClosePopup();
